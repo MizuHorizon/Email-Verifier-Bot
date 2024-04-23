@@ -1,5 +1,6 @@
 import { Client, CommandInteractionOptionResolver, GatewayIntentBits, Message } from "discord.js";
 import env from "./config/server_config";
+import { extractData } from "./services/spreadsheetservice";
 const { TOKEN } = env;
 
 const client = new Client({
@@ -22,13 +23,9 @@ client.on("interactionCreate", async (interaction) => {
   }
   if(interaction.commandName === "verify") {
     let options = interaction.options;
-    console.log(options.getString("url"))
-    
+    const sheetUrl = options.getString("url") as string;
+    console.log(await extractData(sheetUrl));
   }
 });
-
-// client.on("messageCreate", (message: Message) => {
-//   console.log(message);
-// });
 
 client.login(TOKEN);
