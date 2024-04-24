@@ -1,5 +1,6 @@
 import {google} from "googleapis";
-import env from "../config/server_config"
+import env from "../config/server_config";
+import { validateEmail } from "./verifymail";
 const client = new google.auth.JWT(
     env.CLIENT_EMAIL,
     "",
