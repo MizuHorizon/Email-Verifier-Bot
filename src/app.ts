@@ -1,6 +1,7 @@
-import { Client, CommandInteractionOptionResolver, GatewayIntentBits, Message } from "discord.js";
+import { Client, GatewayIntentBits,AttachmentBuilder } from "discord.js";
 import env from "./config/server_config";
 import { extractData } from "./services/spreadsheetservice";
+import fs from "fs/promises";
 const { TOKEN } = env;
 
 const client = new Client({
@@ -22,10 +23,23 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.reply("Pong!");
   }
   if(interaction.commandName === "verify") {
+
+    try{
     let options = interaction.options;
     const sheetUrl = options.getString("url") as string;
-    console.log(interaction);
-    console.log(await extractData(sheetUrl));
+    await interaction.deferReply({ ephemeral: true })
+    
+    const sheetId = await extractData(sheetUrl);
+    console.log("sheetId",sheetId);
+    const fileContent = await fs.readFile(`D:/Project/Email Verifer Bot/src/out/${sheetId}.txt`, 'utf-8');
+    // Create an AttachmentBuilder instance
+    const attachmentBuilder = new AttachmentBuilder(Buffer.from(fileContent), { name: `${sheetId}.txt` });
+   
+    await interaction.editReply({ content: "Here's the file:", files: [attachmentBuilder] });
+    } catch(error){
+      console.log(error);
+      await interaction.reply('An error occurred while sending the file.');
+    }
   }
 });
 

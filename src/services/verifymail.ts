@@ -27,7 +27,7 @@ export async function validateEmail(email: string) {
                 });
 
                 socket.on("close",()=>{
-                    console.log(response); 
+                   // console.log(response); 
                     if (response.includes('550')||response.includes("553") || response.includes("The email account that you tried to reach does not exist")|| response.includes("Service unavailable")) {
                         resolve([email,false]);
                     } else if (response.includes('250')) {

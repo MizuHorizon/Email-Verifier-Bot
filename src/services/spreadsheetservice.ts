@@ -20,7 +20,7 @@ export async function extractData(sheetUrl:string) {
 
         // Extract the Sheet ID from the URL
         const sheetId = sheetUrl!.match(/[-\w]{25,}/)![0];
-        console.log(sheetId);
+        
 
         // Get the values from the sheet
         const response = await sheets.spreadsheets.values.get({
@@ -36,14 +36,12 @@ export async function extractData(sheetUrl:string) {
             } else {
                 let email = column[0];
                 const valid = await validateEmail(email);
-                console.log(email,valid);
+              //  console.log(email,valid);
                 valid[1] ? column.push("Valid") : column.push("Not Valid");
             }
         });
     
         await Promise.all(promises); // Wait for all promises to resolve      
-        
-       try{
         (async () => {
             console.time("writeMany");
             const fileHandle = await fs.open(`./src/out/${sheetId}.txt`, "w");
@@ -57,14 +55,9 @@ export async function extractData(sheetUrl:string) {
             console.timeEnd("writeMany");
             fileHandle.close();
           })();
-        } catch(err){
-            console.error(err);
-        }
-       
-        return rows;
-
-       
-       
+          
+          
+          return sheetId
     } catch (error) {
         console.error('Error updating Google Sheet:', error);
     }
