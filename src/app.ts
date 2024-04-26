@@ -24,6 +24,7 @@ client.on("interactionCreate", async (interaction) => {
   if(interaction.commandName === "verify") {
     let options = interaction.options;
     const sheetUrl = options.getString("url") as string;
+    console.log(interaction);
     console.log(await extractData(sheetUrl));
   }
 });

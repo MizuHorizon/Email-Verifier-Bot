@@ -1,5 +1,6 @@
 import {google} from "googleapis";
 import env from "../config/server_config";
+import fs from 'fs/promises';
 import { validateEmail } from "./verifymail";
 const client = new google.auth.JWT(
     env.CLIENT_EMAIL,
@@ -27,29 +28,46 @@ export async function extractData(sheetUrl:string) {
             spreadsheetId: sheetId,
             range: 'Sheet1' 
         });
-
-        const rows = response.data.values!;
-
-        console.log('Sheet updated successfully!');
         
+        const rows = response.data.values!;
+        const promises = rows.map(async (column, index) => {
+            if (index === 0) {
+                column.push("Status");
+            } else {
+                let email = column[0];
+                const valid = await validateEmail(email);
+                console.log(email,valid);
+                valid[1] ? column.push("Valid") : column.push("Not Valid");
+            }
+        });
+    
+        await Promise.all(promises); // Wait for all promises to resolve      
+        
+       try{
+        (async () => {
+            console.time("writeMany");
+            const fileHandle = await fs.open(`./src/out/${sheetId}.txt`, "w");
+        
+            const stream = fileHandle.createWriteStream();
+        
+            for (let i = 0; i < rows.length; i++) {
+              const buff = Buffer.from( rows[i].join("\t") +"\n", "utf-8");
+              stream.write(buff);
+            }
+            console.timeEnd("writeMany");
+            fileHandle.close();
+          })();
+        } catch(err){
+            console.error(err);
+        }
+       
         return rows;
-        // // Example: Add a new row with some data
-        // rows.push(['New Data 1', 'New Data 2']);
 
-        // // Write the updated values back to the sheet
-        // const writeResponse = await sheets.spreadsheets.values.update({
-        //     spreadsheetId: sheetId,
-        //     range: 'Sheet1', // Change 'Sheet1' to the desired sheet name
-        //     valueInputOption: 'USER_ENTERED',
-        //     requestBody: {
-        //         values: rows
-        //     }
-        // });
-
+       
        
     } catch (error) {
         console.error('Error updating Google Sheet:', error);
     }
 }
 
-const sheetUrl = "https://docs.google.com/spreadsheets/d/1datrnWPmlVf5eKvLe8pSBB8hMIfOmtTNFQop2hwsOD8/edit?usp=sharing";
+// const sheetUrl = "https://docs.google.com/spreadsheets/d/1datrnWPmlVf5eKvLe8pSBB8hMIfOmtTNFQop2hwsOD8/edit?usp=sharing";
